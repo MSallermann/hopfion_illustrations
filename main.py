@@ -18,7 +18,7 @@ plotter.enable_depth_peeling()
 plotter.enable_shadows()
 
 
-N_RES_CURVE = 1000
+N_RES_CURVE = 500
 N_RES_PHI = 64
 
 ## For quicker testing
@@ -29,8 +29,8 @@ MESH_ARGS = {
     "rgb": True,
     "smooth_shading": True,
     "pbr": True,
-    "metallic": 0.65,
-    "roughness": 0.45,
+    "metallic": 0.75,
+    "roughness": 0.15,
 }
 
 

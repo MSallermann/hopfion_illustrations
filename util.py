@@ -148,8 +148,6 @@ def tube_from_3D_curve(
 
     points_curve = np.array([curve_func(t) for t in interval])
 
-    # this is an arbitrary helper vector
-
     points = []
     colors = []
 
