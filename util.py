@@ -141,7 +141,7 @@ def tube_from_3D_curve(
     interval: npt.NDArray,
     radius: float = 1.0,
     resolution_phi: int = 32,
-    epsilon: float = 1e-7,
+    epsilon: float = 1e-5,
     close_curve: bool = True,
     color_callback: Optional[Callable] = None,
 ):
@@ -184,6 +184,45 @@ def tube_from_3D_curve(
         res.point_data["color"] = colors
 
     return res
+
+
+def preimage_from_3D_curve(curve_func, phi0, radius, n_twists, epsilon=1e-5):
+    def preimage(t):
+        T, N, B = compute_frenet_frame_single(curve_func, t, epsilon)
+        p = curve_func(t)
+        phi = phi0 - n_twists * t
+        point = p + radius * (np.sin(phi) * N + np.cos(phi) * B)
+        return point
+
+    return preimage
+
+
+def create_preimage_meshes(
+    curve_func,
+    phi_list,
+    radius,
+    tube_radius,
+    n_res_curve,
+    n_twists,
+    n_res_phi,
+):
+    meshes = []
+
+    interval = np.linspace(0, 2 * np.pi, n_res_curve, endpoint=True)
+
+    for phi in phi_list:
+        preimage_func = preimage_from_3D_curve(
+            curve_func, phi0=phi, radius=radius, n_twists=n_twists
+        )
+
+        preimage_tube = line_from_3D_curve(
+            preimage_func,
+            interval=interval,
+        ).tube(radius=tube_radius, n_sides=n_res_phi)
+
+        meshes.append(preimage_tube)
+
+    return meshes
 
 
 def ring(t, radius=1):
