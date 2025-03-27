@@ -78,10 +78,11 @@ def line_from_3D_curve(curve_func: Callable, interval: npt.NDArray):
     points = np.array([curve_func(t) for t in interval])
     return pv.lines_from_points(points)
 
+
 def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
     """
     Compute the Frenet frame (point, T, N, B) at a single parameter value t.
-    
+
     Parameters:
       curve_func: callable
           A function that takes a scalar t and returns a 3D point (as a list or numpy array).
@@ -89,7 +90,7 @@ def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
           The parameter value at which to compute the Frenet frame.
       epsilon: float
           A small value used for finite-difference derivative approximations.
-      
+
     Returns:
       point: np.ndarray
           The point on the curve at parameter t.
@@ -102,20 +103,20 @@ def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
     """
 
     # Approximate the derivative to get the tangent using central differences
-    r_plus  = np.array(curve_func(t + epsilon))
+    r_plus = np.array(curve_func(t + epsilon))
     r_minus = np.array(curve_func(t - epsilon))
     deriv = (r_plus - r_minus) / (2 * epsilon)
     T = deriv / np.linalg.norm(deriv)
-    
+
     # Helper function to compute the tangent at an arbitrary parameter s
     def tangent_at(s):
         rp = np.array(curve_func(s + epsilon))
         rm = np.array(curve_func(s - epsilon))
         d = (rp - rm) / (2 * epsilon)
         return d / np.linalg.norm(d)
-    
+
     # Approximate the derivative of T to get T'
-    T_plus  = tangent_at(t + epsilon)
+    T_plus = tangent_at(t + epsilon)
     T_minus = tangent_at(t - epsilon)
     dT = (T_plus - T_minus) / (2 * epsilon)
 
@@ -123,7 +124,7 @@ def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
     norm_dT = np.linalg.norm(dT)
     if norm_dT < 1e-8:
         # If curvature is zero, the normal is undefined; here we return an arbitrary vector orthogonal to the tangent
-        ez = np.array( [1/np.sqrt(3), 1/np.sqrt(3), 1/np.sqrt(3)] )
+        ez = np.array([1 / np.sqrt(3), 1 / np.sqrt(3), 1 / np.sqrt(3)])
         N = np.cross(T, ez)
         N /= np.linalg.norm(N)
     else:
@@ -131,15 +132,16 @@ def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
 
     # The binormal is the cross product of T and N
     B = np.cross(T, N)
-    
+
     return T, N, B
+
 
 def tube_from_3D_curve(
     curve_func: Callable,
     interval: npt.NDArray,
     radius: float = 1.0,
     resolution_phi: int = 32,
-    epsilon: float = 1e-2,
+    epsilon: float = 1e-7,
     close_curve: bool = True,
     color_callback: Optional[Callable] = None,
 ):
@@ -187,11 +189,16 @@ def tube_from_3D_curve(
 
 
 def ring(t, radius=1):
-    return [np.cos(t)*radius, np.sin(t)*radius, 0]
+    return [np.cos(t) * radius, np.sin(t) * radius, 0]
 
 
 def figure_eight(t):
     return [np.sin(2.0 * t), np.cos(t), 0]
 
+
 def trefoil(t):
-    return [np.sin(t) + 2.0 * np.sin(2.0 * t), np.sin(3.0 * t), np.cos(t) - 2.0 * np.cos(2.0 * t)]
+    return [
+        np.sin(t) + 2.0 * np.sin(2.0 * t),
+        np.sin(3.0 * t),
+        np.cos(t) - 2.0 * np.cos(2.0 * t),
+    ]
