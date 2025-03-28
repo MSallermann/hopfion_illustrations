@@ -2,6 +2,10 @@ import pyvista as pv
 import numpy as np
 import util
 
+# ########################################
+#           SETUP
+# ########################################
+
 plotter = pv.Plotter(off_screen=False, shape=(1, 1))
 plotter.window_size = (1000, 1000)
 
@@ -51,6 +55,7 @@ def render_hopfion_pre_images(
     phi_list,
     curve_func,
     radius,
+    n_twists,
     translate_vector=np.zeros(3),
     radius_factor=1.125,
     tube_radius=0.045,
@@ -61,7 +66,7 @@ def render_hopfion_pre_images(
         radius=radius * radius_factor,
         tube_radius=tube_radius,
         n_res_curve=N_RES_CURVE,
-        n_twists=N_TWISTS,
+        n_twists=n_twists,
         n_res_phi=N_RES_PHI,
     )
 
@@ -77,110 +82,147 @@ def render_hopfion_pre_images(
 # ########################################
 #           Trefoil Hopfion
 # ########################################
-curve_func = util.trefoil
-RADIUS = 0.5
-N_TWISTS = 2
 
-trefoil_hopfion = util.tube_from_3D_curve(
-    curve_func,
-    interval=INTERVAL,
-    radius=RADIUS,
-    resolution_phi=N_RES_PHI,
-    color_callback=lambda point, t, phi: color_callback(
-        point, t, phi, n_twists=N_TWISTS
-    ),
-)
-plotter.add_mesh(trefoil_hopfion, **MESH_ARGS)
-render_hopfion_pre_images(
-    plotter, PREIMAGE_PHI_LIST, curve_func=curve_func, radius=RADIUS
-)
+
+def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images):
+
+    curve_func = util.trefoil
+
+    trefoil_hopfion = util.tube_from_3D_curve(
+        curve_func,
+        interval=INTERVAL,
+        radius=tube_radius,
+        resolution_phi=N_RES_PHI,
+        color_callback=lambda point, t, phi: color_callback(
+            point, t, phi, n_twists=n_twists
+        ),
+    ).translate(translate_vector, inplace=True)
+    plotter.add_mesh(trefoil_hopfion, **MESH_ARGS)
+
+    if pre_images:
+        render_hopfion_pre_images(
+            plotter,
+            PREIMAGE_PHI_LIST,
+            curve_func=curve_func,
+            radius=tube_radius,
+            n_twists=n_twists,
+            translate_vector=translate_vector,
+        )
+
 
 # ########################################
 #         Toroidal Hopfion
 # ########################################
-curve_func = lambda t: util.ring(t, radius=1.5)
-N_TWISTS = 6
-RADIUS = 0.75
-TRANSLATE_VECTOR = [7, 0, 0]
 
-toroidal_hopfion = util.tube_from_3D_curve(
-    curve_func,
-    interval=INTERVAL,
-    radius=RADIUS,
-    resolution_phi=N_RES_PHI,
-    color_callback=lambda point, t, phi: color_callback(
-        point, t, phi, n_twists=N_TWISTS
-    ),
-)
-toroidal_hopfion.translate(TRANSLATE_VECTOR, inplace=True)
-plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
-render_hopfion_pre_images(
-    plotter,
-    PREIMAGE_PHI_LIST,
-    curve_func=curve_func,
-    radius=RADIUS,
-    translate_vector=TRANSLATE_VECTOR,
-)
+
+def plot_toroidal_hopfion(
+    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images
+):
+    curve_func = lambda t: util.ring(t, radius=ring_radius)
+
+    toroidal_hopfion = util.tube_from_3D_curve(
+        curve_func,
+        interval=INTERVAL,
+        radius=tube_radius,
+        resolution_phi=N_RES_PHI,
+        color_callback=lambda point, t, phi: color_callback(
+            point, t, phi, n_twists=n_twists
+        ),
+    ).translate(translate_vector, inplace=True)
+    plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
+
+    if pre_images:
+        render_hopfion_pre_images(
+            plotter,
+            PREIMAGE_PHI_LIST,
+            curve_func=curve_func,
+            radius=tube_radius,
+            n_twists=n_twists,
+            translate_vector=translate_vector,
+        )
 
 
 ########################################
-#        Skyrmion tube and Hopfion
+#        Skyrmion tube
 ########################################
-curve_func = lambda t: util.ring(t, radius=1.5)
-RADIUS = 0.75
-N_TWISTS = 1
-TRANSLATE_VECTOR = [-7, 0, 0]
 
-toroidal_hopfion_tube = util.tube_from_3D_curve(
-    curve_func,
-    interval=INTERVAL,
-    radius=RADIUS,
-    resolution_phi=N_RES_PHI,
-    color_callback=lambda point, t, phi: color_callback(
-        point, t, phi, n_twists=N_TWISTS
-    ),
-)
-toroidal_hopfion_tube.translate(TRANSLATE_VECTOR, inplace=True)
-plotter.add_mesh(toroidal_hopfion_tube, **MESH_ARGS)
-render_hopfion_pre_images(
-    plotter,
-    PREIMAGE_PHI_LIST,
-    curve_func=curve_func,
-    radius=RADIUS,
-    translate_vector=TRANSLATE_VECTOR,
-)
 
-# skyrmion tube
-sk_tube = util.tube_from_3D_curve(
-    lambda t: [0, 0, t],
-    interval=np.linspace(-3, 3, N_RES_CURVE, endpoint=True),
-    radius=1.5,
-    resolution_phi=N_RES_PHI,
-    color_callback=lambda point, t, phi: util.get_rgba_color(
-        np.array([np.cos(phi), np.sin(phi), 0])
-    ),
-    close_curve=False,
-)
-sk_tube.translate(TRANSLATE_VECTOR, inplace=True)
-plotter.add_mesh(sk_tube, **MESH_ARGS)
+def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vector):
+    sk_tube = util.tube_from_3D_curve(
+        lambda t: [0, 0, t],
+        interval=np.linspace(height_start, height_end, N_RES_CURVE, endpoint=True),
+        radius=radius,
+        resolution_phi=N_RES_PHI,
+        color_callback=lambda point, t, phi: util.get_rgba_color(
+            np.array([np.cos(phi), np.sin(phi), 0])
+        ),
+        close_curve=False,
+    )
+    sk_tube.translate(translate_vector, inplace=True)
+    plotter.add_mesh(sk_tube, **MESH_ARGS)
 
 
 ########################################
 #        Bobber
 ########################################
-TRANSLATE_VECTOR = [-14, 0, 0]
+def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector):
 
-bobber = util.tube_from_3D_curve(
-    lambda t: [0, 0, t],
-    interval=np.linspace(0, 3, N_RES_CURVE, endpoint=True),
-    radius=lambda t: np.sqrt(t + 1e-8),
-    resolution_phi=N_RES_PHI,
-    color_callback=lambda point, t, phi: util.get_rgba_color(
-        np.array([np.cos(phi), np.sin(phi), 0])
-    ),
-    close_curve=False,
+    alpha = radius_end / np.sqrt(height_end - height_start)
+
+    bobber = util.tube_from_3D_curve(
+        lambda t: [0, 0, t],
+        interval=np.linspace(height_start, height_end, N_RES_CURVE, endpoint=True),
+        radius=lambda t, alpha=alpha: alpha * np.sqrt(t - height_start + 1e-8),
+        resolution_phi=N_RES_PHI,
+        color_callback=lambda point, t, phi: util.get_rgba_color(
+            np.array([np.cos(phi), np.sin(phi), 0])
+        ),
+        close_curve=False,
+    )
+    bobber.translate(translate_vector, inplace=True)
+    plotter.add_mesh(bobber, **MESH_ARGS)
+
+
+# ########################################
+#                 PLOT
+# ########################################
+
+# Single skyrmion tube
+plot_skyrmion_tube(
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[-14, 0, 0]
 )
-bobber.translate(TRANSLATE_VECTOR, inplace=True)
-plotter.add_mesh(bobber, **MESH_ARGS)
+
+# Single bobber
+plot_bobber(
+    plotter, height_start=0, height_end=3, radius_end=1.5, translate_vector=[-7, 0, 0]
+)
+
+# Trefoil Hopfion
+plot_trefoil_hopfion(
+    plotter, tube_radius=0.5, n_twists=2, translate_vector=[0, 0, 0], pre_images=True
+)
+
+# Toroidal Hopfion
+plot_toroidal_hopfion(
+    plotter,
+    ring_radius=2.0,
+    tube_radius=0.5,
+    n_twists=2,
+    translate_vector=[7, 0, 0],
+    pre_images=True,
+)
+
+# Toroidal Hopfion on a skyrmion tube
+plot_toroidal_hopfion(
+    plotter,
+    ring_radius=2.0,
+    tube_radius=0.5,
+    n_twists=1,
+    translate_vector=[14, 0, 0],
+    pre_images=True,
+)
+plot_skyrmion_tube(
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[14, 0, 0]
+)
 
 plotter.show(screenshot="screen.png")
