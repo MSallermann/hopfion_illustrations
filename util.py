@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 import pyvista as pv
 import math
 from scipy.spatial.transform import Rotation as R
@@ -79,7 +79,9 @@ def line_from_3D_curve(curve_func: Callable, interval: npt.NDArray):
     return pv.lines_from_points(points)
 
 
-def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
+def compute_frenet_frame_single(
+    curve_func: Callable, t: float, epsilon: float = 1e-5
+) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
     """
     Compute the Frenet frame (point, T, N, B) at a single parameter value t.
 
@@ -139,12 +141,12 @@ def compute_frenet_frame_single(curve_func, t, epsilon=1e-5):
 def tube_from_3D_curve(
     curve_func: Callable,
     interval: npt.NDArray,
-    radius: float = 1.0,
+    radius: Union[Callable, float] = 1.0,
     resolution_phi: int = 32,
     epsilon: float = 1e-5,
     close_curve: bool = True,
     color_callback: Optional[Callable] = None,
-):
+) -> pv.PolyData:
 
     points_curve = np.array([curve_func(t) for t in interval])
 
@@ -155,7 +157,11 @@ def tube_from_3D_curve(
         T, N, B = compute_frenet_frame_single(curve_func, t, epsilon)
 
         for phi in np.linspace(0, 2 * np.pi, resolution_phi, endpoint=False):
-            point = p + radius * (np.sin(phi) * N + np.cos(phi) * B)
+            if callable(radius):
+                r = radius(t)
+            else:
+                r = radius
+            point = p + r * (np.sin(phi) * N + np.cos(phi) * B)
             points.append(point)
             if not color_callback is None:
                 colors.append(color_callback(point, t, phi))
@@ -186,26 +192,36 @@ def tube_from_3D_curve(
     return res
 
 
-def preimage_from_3D_curve(curve_func, phi0, radius, n_twists, epsilon=1e-5):
+def preimage_from_3D_curve(
+    curve_func: Callable,
+    phi0: float,
+    radius: Union[Callable, float],
+    n_twists: int,
+    epsilon: float = 1e-5,
+) -> Callable:
     def preimage(t):
         T, N, B = compute_frenet_frame_single(curve_func, t, epsilon)
         p = curve_func(t)
         phi = phi0 - n_twists * t
-        point = p + radius * (np.sin(phi) * N + np.cos(phi) * B)
+        if callable(radius):
+            r = radius(t)
+        else:
+            r = radius
+        point = p + r * (np.sin(phi) * N + np.cos(phi) * B)
         return point
 
     return preimage
 
 
 def create_preimage_meshes(
-    curve_func,
-    phi_list,
-    radius,
-    tube_radius,
-    n_res_curve,
-    n_twists,
-    n_res_phi,
-):
+    curve_func: Callable,
+    phi_list: list[float],
+    radius: Union[Callable, float],
+    tube_radius: float,
+    n_res_curve: int,
+    n_twists: int,
+    n_res_phi: int,
+) -> list[pv.PolyData]:
     meshes = []
 
     interval = np.linspace(0, 2 * np.pi, n_res_curve, endpoint=True)
