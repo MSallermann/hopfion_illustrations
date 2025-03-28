@@ -7,8 +7,9 @@ import link
 #           SETUP
 # ########################################
 
-plotter = pv.Plotter(off_screen=False, shape=(1, 1))
-plotter.window_size = (1000, 1000)
+OFFSCREEN = True
+plotter = pv.Plotter(off_screen=OFFSCREEN, shape=(1, 1))
+plotter.window_size = (2048, 720)
 
 # Create white skybox
 image_paths = 6 * ["./cubemap/very_light_grey.png"]
@@ -207,7 +208,7 @@ def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector)
 
 # Single skyrmion tube
 plot_skyrmion_tube(
-    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[-14, 0, 0]
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[-12, 0, 0]
 )
 
 # Single bobber
@@ -243,4 +244,9 @@ plot_skyrmion_tube(
     plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[14, 0, 0]
 )
 
-plotter.show(screenshot="screen.png")
+plotter.camera_position = 'xz'
+plotter.camera.elevation = 20
+plotter.camera.distance = 0.5
+plotter.camera.view_angle /= 2.9
+
+cpos = plotter.show(screenshot="figure.png", return_cpos=True)
