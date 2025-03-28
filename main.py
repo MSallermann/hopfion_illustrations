@@ -1,6 +1,7 @@
 import pyvista as pv
 import numpy as np
 import util
+import link
 
 # ########################################
 #           SETUP
@@ -26,8 +27,8 @@ N_RES_CURVE = 500
 N_RES_PHI = 64
 
 # For quicker testing
-N_RES_CURVE = 50
-N_RES_PHI = 16
+# N_RES_CURVE = 50
+# N_RES_PHI = 16
 
 INTERVAL = np.linspace(0, 2 * np.pi, N_RES_CURVE, endpoint=False)
 
@@ -69,6 +70,23 @@ def render_hopfion_pre_images(
         n_twists=n_twists,
         n_res_phi=N_RES_PHI,
     )
+
+    pre_image_1 = util.preimage_from_3D_curve(
+        curve_func, phi0=0, radius=radius, n_twists=n_twists
+    )
+    pre_image_2 = util.preimage_from_3D_curve(
+        curve_func, phi0=np.pi, radius=radius, n_twists=n_twists
+    )
+
+    linking_number = link.compute_linking_number(
+        pre_image_1,
+        pre_image_2,
+        num_points=N_RES_CURVE,
+        t_range=(INTERVAL[0], INTERVAL[-1]),
+    )
+
+    print(f"{n_twists = }")
+    print(f"{linking_number = }")
 
     [p.translate(translate_vector, inplace=True) for p in pre_images]
 
@@ -199,7 +217,7 @@ plot_bobber(
 
 # Trefoil Hopfion
 plot_trefoil_hopfion(
-    plotter, tube_radius=0.5, n_twists=2, translate_vector=[0, 0, 0], pre_images=True
+    plotter, tube_radius=0.5, n_twists=-3, translate_vector=[0, 0, 0], pre_images=True
 )
 
 # Toroidal Hopfion
@@ -207,7 +225,7 @@ plot_toroidal_hopfion(
     plotter,
     ring_radius=2.0,
     tube_radius=0.5,
-    n_twists=2,
+    n_twists=6,
     translate_vector=[7, 0, 0],
     pre_images=True,
 )
