@@ -20,11 +20,12 @@ plotter.enable_shadows()
 
 N_RES_CURVE = 500
 N_RES_PHI = 64
-INTERVAL = np.linspace(0, 2 * np.pi, N_RES_CURVE, endpoint=False)
 
-## For quicker testing
-# N_RES_CURVE = 50
-# N_RES_PHI = 16
+# For quicker testing
+N_RES_CURVE = 50
+N_RES_PHI = 16
+
+INTERVAL = np.linspace(0, 2 * np.pi, N_RES_CURVE, endpoint=False)
 
 MESH_ARGS = {
     "rgb": True,
@@ -40,6 +41,37 @@ def color_callback(point, t, phi, n_twists):
         np.array([np.cos(n_twists * t + phi), np.sin(n_twists * t + phi), 0])
     )
     return color
+
+
+PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, 16, endpoint=False)
+
+
+def render_hopfion_pre_images(
+    plotter,
+    phi_list,
+    curve_func,
+    radius,
+    translate_vector=np.zeros(3),
+    radius_factor=1.125,
+    tube_radius=0.045,
+):
+    pre_images = util.create_preimage_meshes(
+        curve_func,
+        phi_list=phi_list,
+        radius=radius * radius_factor,
+        tube_radius=tube_radius,
+        n_res_curve=N_RES_CURVE,
+        n_twists=N_TWISTS,
+        n_res_phi=N_RES_PHI,
+    )
+
+    [p.translate(translate_vector, inplace=True) for p in pre_images]
+
+    for phi, m in zip(phi_list, pre_images):
+        args = MESH_ARGS.copy()
+        args["rgb"] = False
+        args["color"] = util.get_rgba_color(np.array([np.cos(phi), np.sin(phi), 0]))
+        plotter.add_mesh(m, **args)
 
 
 # ########################################
@@ -59,24 +91,9 @@ trefoil_hopfion = util.tube_from_3D_curve(
     ),
 )
 plotter.add_mesh(trefoil_hopfion, **MESH_ARGS)
-
-PHI_LIST = np.linspace(0, 2 * np.pi, 16, endpoint=False)
-pre_images = util.create_preimage_meshes(
-    curve_func,
-    phi_list=PHI_LIST,
-    radius=RADIUS * 1.1,
-    tube_radius=0.035,
-    n_res_curve=N_RES_CURVE,
-    n_twists=N_TWISTS,
-    n_res_phi=N_RES_PHI,
+render_hopfion_pre_images(
+    plotter, PREIMAGE_PHI_LIST, curve_func=curve_func, radius=RADIUS
 )
-
-for phi, m in zip(PHI_LIST, pre_images):
-    args = MESH_ARGS.copy()
-    args["rgb"] = False
-    args["color"] = util.get_rgba_color(np.array([np.cos(phi), np.sin(phi), 0]))
-    plotter.add_mesh(m, **args)
-
 
 # ########################################
 #         Toroidal Hopfion
@@ -84,6 +101,7 @@ for phi, m in zip(PHI_LIST, pre_images):
 curve_func = lambda t: util.ring(t, radius=1.5)
 N_TWISTS = 6
 RADIUS = 0.75
+TRANSLATE_VECTOR = [7, 0, 0]
 
 toroidal_hopfion = util.tube_from_3D_curve(
     curve_func,
@@ -94,8 +112,15 @@ toroidal_hopfion = util.tube_from_3D_curve(
         point, t, phi, n_twists=N_TWISTS
     ),
 )
-toroidal_hopfion.translate([7, 0, 0], inplace=True)
+toroidal_hopfion.translate(TRANSLATE_VECTOR, inplace=True)
 plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
+render_hopfion_pre_images(
+    plotter,
+    PREIMAGE_PHI_LIST,
+    curve_func=curve_func,
+    radius=RADIUS,
+    translate_vector=TRANSLATE_VECTOR,
+)
 
 
 ########################################
@@ -104,6 +129,8 @@ plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
 curve_func = lambda t: util.ring(t, radius=1.5)
 RADIUS = 0.75
 N_TWISTS = 1
+TRANSLATE_VECTOR = [-7, 0, 0]
+
 toroidal_hopfion_tube = util.tube_from_3D_curve(
     curve_func,
     interval=INTERVAL,
@@ -113,10 +140,17 @@ toroidal_hopfion_tube = util.tube_from_3D_curve(
         point, t, phi, n_twists=N_TWISTS
     ),
 )
-toroidal_hopfion_tube.translate([-7, 0, 0], inplace=True)
+toroidal_hopfion_tube.translate(TRANSLATE_VECTOR, inplace=True)
 plotter.add_mesh(toroidal_hopfion_tube, **MESH_ARGS)
+render_hopfion_pre_images(
+    plotter,
+    PREIMAGE_PHI_LIST,
+    curve_func=curve_func,
+    radius=RADIUS,
+    translate_vector=TRANSLATE_VECTOR,
+)
 
-
+# skyrmion tube
 sk_tube = util.tube_from_3D_curve(
     lambda t: [0, 0, t],
     interval=np.linspace(-3, 3, N_RES_CURVE, endpoint=True),
@@ -127,7 +161,26 @@ sk_tube = util.tube_from_3D_curve(
     ),
     close_curve=False,
 )
-sk_tube.translate([-7, 0, 0], inplace=True)
+sk_tube.translate(TRANSLATE_VECTOR, inplace=True)
 plotter.add_mesh(sk_tube, **MESH_ARGS)
+
+
+########################################
+#        Bobber
+########################################
+TRANSLATE_VECTOR = [-14, 0, 0]
+
+bobber = util.tube_from_3D_curve(
+    lambda t: [0, 0, t],
+    interval=np.linspace(0, 3, N_RES_CURVE, endpoint=True),
+    radius=lambda t: np.sqrt(t + 1e-8),
+    resolution_phi=N_RES_PHI,
+    color_callback=lambda point, t, phi: util.get_rgba_color(
+        np.array([np.cos(phi), np.sin(phi), 0])
+    ),
+    close_curve=False,
+)
+bobber.translate(TRANSLATE_VECTOR, inplace=True)
+plotter.add_mesh(bobber, **MESH_ARGS)
 
 plotter.show(screenshot="screen.png")
