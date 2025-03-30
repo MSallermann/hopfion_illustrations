@@ -102,7 +102,7 @@ def render_hopfion_pre_images(
 # ########################################
 
 
-def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images, n_preimages=N_PREIMAGES):
+def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images, n_preimages=N_PREIMAGES, mesh_args=MESH_ARGS):
 
     curve_func = util.trefoil
 
@@ -115,7 +115,7 @@ def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_i
             point, t, phi, n_twists=n_twists
         ),
     ).translate(translate_vector, inplace=True)
-    plotter.add_mesh(trefoil_hopfion, **MESH_ARGS)
+    plotter.add_mesh(trefoil_hopfion, **mesh_args)
 
     PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, n_preimages, endpoint=False)
 
@@ -136,7 +136,7 @@ def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_i
 
 
 def plot_toroidal_hopfion(
-    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images, n_preimages=N_PREIMAGES
+    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images, n_preimages=N_PREIMAGES, mesh_args=MESH_ARGS
 ):
     curve_func = lambda t: util.ring(t, radius=ring_radius)
 
@@ -149,7 +149,7 @@ def plot_toroidal_hopfion(
             point, t, phi, n_twists=n_twists
         ),
     ).translate(translate_vector, inplace=True)
-    plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
+    plotter.add_mesh(toroidal_hopfion, **mesh_args)
 
     PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, n_preimages, endpoint=False)
 
@@ -169,7 +169,7 @@ def plot_toroidal_hopfion(
 ########################################
 
 
-def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vector):
+def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vector, mesh_args=MESH_ARGS):
     sk_tube = util.tube_from_3D_curve(
         lambda t: [0, 0, t],
         interval=np.linspace(height_start, height_end, N_RES_CURVE, endpoint=True),
@@ -181,13 +181,13 @@ def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vect
         close_curve=False,
     )
     sk_tube.translate(translate_vector, inplace=True)
-    plotter.add_mesh(sk_tube, **MESH_ARGS)
+    plotter.add_mesh(sk_tube, **mesh_args)
 
 
 ########################################
 #        Bobber
 ########################################
-def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector):
+def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector, mesh_args=MESH_ARGS):
 
     alpha = radius_end / np.sqrt(height_end - height_start)
 
@@ -202,7 +202,7 @@ def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector)
         close_curve=False,
     )
     bobber.translate(translate_vector, inplace=True)
-    plotter.add_mesh(bobber, **MESH_ARGS)
+    plotter.add_mesh(bobber, **mesh_args)
 
 
 # ########################################
