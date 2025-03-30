@@ -33,6 +33,8 @@ N_RES_PHI = 64
 
 INTERVAL = np.linspace(0, 2 * np.pi, N_RES_CURVE, endpoint=False)
 
+N_PREIMAGES = 12
+
 MESH_ARGS = {
     "rgb": True,
     "smooth_shading": True,
@@ -103,7 +105,7 @@ def render_hopfion_pre_images(
 # ########################################
 
 
-def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images):
+def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images, n_preimages=N_PREIMAGES):
 
     curve_func = util.trefoil
 
@@ -117,6 +119,8 @@ def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_i
         ),
     ).translate(translate_vector, inplace=True)
     plotter.add_mesh(trefoil_hopfion, **MESH_ARGS)
+
+    PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, n_preimages, endpoint=False)
 
     if pre_images:
         render_hopfion_pre_images(
@@ -135,7 +139,7 @@ def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_i
 
 
 def plot_toroidal_hopfion(
-    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images
+    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images, n_preimages=N_PREIMAGES
 ):
     curve_func = lambda t: util.ring(t, radius=ring_radius)
 
@@ -149,6 +153,8 @@ def plot_toroidal_hopfion(
         ),
     ).translate(translate_vector, inplace=True)
     plotter.add_mesh(toroidal_hopfion, **MESH_ARGS)
+
+    PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, n_preimages, endpoint=False)
 
     if pre_images:
         render_hopfion_pre_images(
