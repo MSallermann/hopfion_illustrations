@@ -51,9 +51,6 @@ def color_callback(point, t, phi, n_twists):
     return color
 
 
-PREIMAGE_PHI_LIST = np.linspace(0, 2 * np.pi, 16, endpoint=False)
-
-
 def render_hopfion_pre_images(
     plotter,
     phi_list,
