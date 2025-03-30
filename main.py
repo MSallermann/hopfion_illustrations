@@ -102,7 +102,15 @@ def render_hopfion_pre_images(
 # ########################################
 
 
-def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_images, n_preimages=N_PREIMAGES, mesh_args=MESH_ARGS):
+def plot_trefoil_hopfion(
+    plotter,
+    tube_radius,
+    n_twists,
+    translate_vector,
+    pre_images,
+    n_preimages=N_PREIMAGES,
+    mesh_args=MESH_ARGS,
+):
 
     curve_func = util.trefoil
 
@@ -136,7 +144,14 @@ def plot_trefoil_hopfion(plotter, tube_radius, n_twists, translate_vector, pre_i
 
 
 def plot_toroidal_hopfion(
-    plotter, n_twists, ring_radius, tube_radius, translate_vector, pre_images, n_preimages=N_PREIMAGES, mesh_args=MESH_ARGS
+    plotter,
+    n_twists,
+    ring_radius,
+    tube_radius,
+    translate_vector,
+    pre_images,
+    n_preimages=N_PREIMAGES,
+    mesh_args=MESH_ARGS,
 ):
     curve_func = lambda t: util.ring(t, radius=ring_radius)
 
@@ -169,7 +184,9 @@ def plot_toroidal_hopfion(
 ########################################
 
 
-def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vector, mesh_args=MESH_ARGS):
+def plot_skyrmion_tube(
+    plotter, radius, height_start, height_end, translate_vector, mesh_args=MESH_ARGS
+):
     sk_tube = util.tube_from_3D_curve(
         lambda t: [0, 0, t],
         interval=np.linspace(height_start, height_end, N_RES_CURVE, endpoint=True),
@@ -187,7 +204,9 @@ def plot_skyrmion_tube(plotter, radius, height_start, height_end, translate_vect
 ########################################
 #        Bobber
 ########################################
-def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector, mesh_args=MESH_ARGS):
+def plot_bobber(
+    plotter, height_start, height_end, radius_end, translate_vector, mesh_args=MESH_ARGS
+):
 
     alpha = radius_end / np.sqrt(height_end - height_start)
 
@@ -203,6 +222,40 @@ def plot_bobber(plotter, height_start, height_end, radius_end, translate_vector,
     )
     bobber.translate(translate_vector, inplace=True)
     plotter.add_mesh(bobber, **mesh_args)
+
+
+########################################
+#        Globule
+########################################
+def plot_globule(
+    plotter,
+    height_start,
+    height_end,
+    translate_vector,
+    radius_center=None,
+    mesh_args=MESH_ARGS,
+):
+
+    R = (height_end - height_start) / 2.0
+    t_mid = (height_end + height_start) / 2.0
+
+    if not radius_center is None:
+        alpha = radius_center / R
+    else:
+        alpha = 1.0
+
+    globule = util.tube_from_3D_curve(
+        lambda t: [0, 0, t],
+        interval=np.linspace(height_start, height_end, N_RES_CURVE, endpoint=True),
+        radius=lambda t: alpha * np.sqrt(R**2 - (t - t_mid) ** 2 + 1e-8),
+        resolution_phi=N_RES_PHI,
+        color_callback=lambda point, t, phi: util.get_rgba_color(
+            np.array([np.cos(phi), np.sin(phi), 0])
+        ),
+        close_curve=False,
+    )
+    globule.translate(translate_vector, inplace=True)
+    plotter.add_mesh(globule, **mesh_args)
 
 
 # ########################################
