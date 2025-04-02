@@ -3,6 +3,8 @@ import numpy.typing as npt
 from typing import Callable, Optional, Union
 import pyvista as pv
 import math
+import enum
+from pathlib import Path
 
 
 def get_rgba_color(
@@ -15,9 +17,9 @@ def get_rgba_color(
     """
     Compute an RGBA color based on a 3D spin vector.
 
-    The function projects the spin vector onto three cardinal axes and computes a hue from the 
-    arctangent of the projections in the plane defined by cardinal_a and cardinal_b. The saturation 
-    and value are derived from the projection on cardinal_c, and the resulting HSV color is converted 
+    The function projects the spin vector onto three cardinal axes and computes a hue from the
+    arctangent of the projections in the plane defined by cardinal_a and cardinal_b. The saturation
+    and value are derived from the projection on cardinal_c, and the resulting HSV color is converted
     to RGB and combined with the given opacity.
 
     Parameters:
@@ -246,6 +248,41 @@ def tube_from_3D_curve(
     return res
 
 
+def surface_from_equation(
+    surface_func: Callable,
+    interval_x: list[float],
+    interval_y: list[float],
+    color_callback: Optional[Callable] = None,
+) -> pv.PolyData:
+    points = []
+    colors = []
+    faces = []
+
+    NX = len(interval_x)
+    NY = len(interval_y)
+
+    for ix, x in enumerate(interval_x):
+        for iy, y in enumerate(interval_y):
+            z = surface_func(x, y)
+            points.append(np.array([x, y, z]))
+
+            if color_callback is not None:
+                colors.append(color_callback(x, y, z))
+
+            if ix < NX - 1 and iy < NY - 1:
+                idx_p1 = ix * NY + iy
+                idx_p2 = (ix + 1) * NY + iy
+                idx_p3 = (ix + 1) * NY + (iy + 1)
+                idx_p4 = ix * NY + (iy + 1)
+                faces.append([4, idx_p1, idx_p2, idx_p3, idx_p4])
+
+    res = pv.PolyData(points, faces=faces)
+    if color_callback is not None:
+        res.point_data["color"] = colors
+
+    return res
+
+
 def preimage_from_3D_curve(
     curve_func: Callable,
     phi0: float,
@@ -269,6 +306,7 @@ def preimage_from_3D_curve(
     Returns:
         Callable: A function that maps a parameter t to a 3D point on the preimage curve.
     """
+
     def preimage(t):
         T, N, B = compute_frenet_frame_single(curve_func, t, epsilon)
         p = curve_func(t)
@@ -370,3 +408,37 @@ def trefoil(t):
         np.sin(3.0 * t),
         np.cos(t) - 2.0 * np.cos(2.0 * t),
     ]
+
+
+class SkyBox(enum.Enum):
+    black = "black"
+    blue = "blue"
+    dark_grey = "dark_grey"
+    grey = "grey"
+    light_grey = "light_grey"
+    red = "red"
+    very_light_grey = "very_light_grey"
+    white = "white"
+    yellow = "yellow"
+
+
+def setup_plotter(
+    offscreen: bool = False,
+    resolution: tuple[float] = (2048, 720),
+    skybox: SkyBox = SkyBox.very_light_grey,
+):
+    plotter = pv.Plotter(off_screen=offscreen, shape=(1, 1), window_size=resolution)
+
+    # Create skybox
+    image_paths = 6 * [f"{Path(__file__).parent}/cubemap/{skybox.value}.png"]
+    cubemap = pv.cubemap_from_filenames(image_paths=image_paths)
+
+    # Some plotter settings for "nice" looking renders
+    plotter.enable_3_lights()
+    plotter.set_environment_texture(cubemap)
+    plotter.set_background("white")
+    plotter.enable_anti_aliasing()
+    plotter.enable_depth_peeling()
+    plotter.enable_shadows()
+
+    return plotter
