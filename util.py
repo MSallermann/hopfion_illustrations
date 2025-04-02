@@ -3,7 +3,6 @@ import numpy.typing as npt
 from typing import Callable, Optional, Union
 import pyvista as pv
 import math
-from scipy.spatial.transform import Rotation as R
 
 
 def get_rgba_color(
@@ -13,7 +12,6 @@ def get_rgba_color(
     cardinal_b: npt.NDArray = np.array([0, 1, 0]),
     cardinal_c: npt.NDArray = np.array([0, 0, 1]),
 ) -> npt.NDArray:
-
     # Annoying OpenGl functions
     def atan2(y, x):
         if x == 0.0:
@@ -67,7 +65,6 @@ def get_rgba_colors(
     cardinal_b: npt.NDArray = np.array([0, 1, 0]),
     cardinal_c: npt.NDArray = np.array([0, 0, 1]),
 ) -> npt.NDArray:
-
     rgba = [
         get_rgba_color(s, opacity, cardinal_a, cardinal_b, cardinal_c) for s in spins
     ]
@@ -147,7 +144,6 @@ def tube_from_3D_curve(
     close_curve: bool = True,
     color_callback: Optional[Callable] = None,
 ) -> pv.PolyData:
-
     points_curve = np.array([curve_func(t) for t in interval])
 
     points = []
@@ -163,7 +159,7 @@ def tube_from_3D_curve(
                 r = radius
             point = p + r * (np.sin(phi) * N + np.cos(phi) * B)
             points.append(point)
-            if not color_callback is None:
+            if color_callback is not None:
                 colors.append(color_callback(point, t, phi))
 
     # Now we create rectangular faces by joining points along the circumference of the tube
@@ -186,7 +182,7 @@ def tube_from_3D_curve(
             faces.append([4, idx_p1, idx_p3, idx_p4, idx_p2])
 
     res = pv.PolyData(points, faces=faces)
-    if not color_callback is None:
+    if color_callback is not None:
         res.point_data["color"] = colors
 
     return res

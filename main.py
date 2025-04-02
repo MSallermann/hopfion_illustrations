@@ -24,8 +24,8 @@ plotter.enable_depth_peeling()
 plotter.enable_shadows()
 
 
-N_RES_CURVE = 500
-N_RES_PHI = 64
+N_RES_CURVE = 2000
+N_RES_PHI = 128
 
 # For quicker testing
 # N_RES_CURVE = 50
@@ -33,7 +33,7 @@ N_RES_PHI = 64
 
 INTERVAL = np.linspace(0, 2 * np.pi, N_RES_CURVE, endpoint=False)
 
-N_PREIMAGES = 12
+N_PREIMAGES = 24
 
 MESH_ARGS = {
     "rgb": True,
@@ -111,7 +111,6 @@ def plot_trefoil_hopfion(
     n_preimages=N_PREIMAGES,
     mesh_args=MESH_ARGS,
 ):
-
     curve_func = util.trefoil
 
     trefoil_hopfion = util.tube_from_3D_curve(
@@ -153,7 +152,8 @@ def plot_toroidal_hopfion(
     n_preimages=N_PREIMAGES,
     mesh_args=MESH_ARGS,
 ):
-    curve_func = lambda t: util.ring(t, radius=ring_radius)
+    def curve_func(t):
+        return util.ring(t, radius=ring_radius)
 
     toroidal_hopfion = util.tube_from_3D_curve(
         curve_func,
@@ -207,7 +207,6 @@ def plot_skyrmion_tube(
 def plot_bobber(
     plotter, height_start, height_end, radius_end, translate_vector, mesh_args=MESH_ARGS
 ):
-
     alpha = radius_end / np.sqrt(height_end - height_start)
 
     bobber = util.tube_from_3D_curve(
@@ -235,11 +234,10 @@ def plot_globule(
     radius_center=None,
     mesh_args=MESH_ARGS,
 ):
-
     R = (height_end - height_start) / 2.0
     t_mid = (height_end + height_start) / 2.0
 
-    if not radius_center is None:
+    if radius_center is not None:
         alpha = radius_center / R
     else:
         alpha = 1.0
@@ -264,45 +262,56 @@ def plot_globule(
 
 # Single skyrmion tube
 plot_skyrmion_tube(
-    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[-12, 0, 0]
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[-5, 0, 0]
 )
 
 # Single bobber
 plot_bobber(
-    plotter, height_start=0, height_end=3, radius_end=1.5, translate_vector=[-7, 0, 0]
+    plotter, height_start=0, height_end=3, radius_end=1.5, translate_vector=[0, 0, 0]
 )
 
-# Trefoil Hopfion
-plot_trefoil_hopfion(
-    plotter, tube_radius=0.5, n_twists=-3, translate_vector=[0, 0, 0], pre_images=True
-)
-
-# Toroidal Hopfion
-plot_toroidal_hopfion(
+plot_globule(
     plotter,
-    ring_radius=2.0,
-    tube_radius=0.5,
-    n_twists=6,
-    translate_vector=[7, 0, 0],
-    pre_images=True,
+    height_start=-1,
+    height_end=1,
+    radius_center=1.2,
+    translate_vector=[5, 0, 0],
 )
+
+# # Trefoil Hopfion
+# plot_trefoil_hopfion(
+#     plotter, tube_radius=0.5, n_twists=-3, translate_vector=[0, 0, 0], pre_images=True
+# )
+
+# # Toroidal Hopfion
+# plot_toroidal_hopfion(
+#     plotter,
+#     ring_radius=2.0,
+#     tube_radius=0.5,
+#     n_twists=6,
+#     translate_vector=[7, 0, 0],
+#     pre_images=True,
+# )
 
 # Toroidal Hopfion on a skyrmion tube
+mesh_args = MESH_ARGS.copy()
+mesh_args.update({"rgb": False, "color": "white"})
 plot_toroidal_hopfion(
     plotter,
     ring_radius=2.0,
     tube_radius=0.5,
     n_twists=1,
-    translate_vector=[14, 0, 0],
+    translate_vector=[10, 0, 0],
     pre_images=True,
+    mesh_args=mesh_args,
 )
 plot_skyrmion_tube(
-    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[14, 0, 0]
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[10, 0, 0]
 )
 
-plotter.camera_position = 'xz'
+plotter.camera_position = "xz"
 plotter.camera.elevation = 20
 plotter.camera.distance = 0.5
-plotter.camera.view_angle /= 2.9
+plotter.camera.view_angle /= 2.2
 
 cpos = plotter.show(screenshot="figure.png", return_cpos=True)
