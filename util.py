@@ -12,6 +12,25 @@ def get_rgba_color(
     cardinal_b: npt.NDArray = np.array([0, 1, 0]),
     cardinal_c: npt.NDArray = np.array([0, 0, 1]),
 ) -> npt.NDArray:
+    """
+    Compute an RGBA color based on a 3D spin vector.
+
+    The function projects the spin vector onto three cardinal axes and computes a hue from the 
+    arctangent of the projections in the plane defined by cardinal_a and cardinal_b. The saturation 
+    and value are derived from the projection on cardinal_c, and the resulting HSV color is converted 
+    to RGB and combined with the given opacity.
+
+    Parameters:
+        spin (npt.NDArray): A 3D vector representing the spin.
+        opacity (float, optional): The opacity value for the color. Defaults to 1.0.
+        cardinal_a (npt.NDArray, optional): First cardinal vector. Defaults to np.array([1, 0, 0]).
+        cardinal_b (npt.NDArray, optional): Second cardinal vector. Defaults to np.array([0, 1, 0]).
+        cardinal_c (npt.NDArray, optional): Third cardinal vector. Defaults to np.array([0, 0, 1]).
+
+    Returns:
+        npt.NDArray: A list of four values representing the RGBA color.
+    """
+
     # Annoying OpenGl functions
     def atan2(y, x):
         if x == 0.0:
@@ -65,6 +84,21 @@ def get_rgba_colors(
     cardinal_b: npt.NDArray = np.array([0, 1, 0]),
     cardinal_c: npt.NDArray = np.array([0, 0, 1]),
 ) -> npt.NDArray:
+    """
+    Compute RGBA colors for an array of spin vectors.
+
+    This function applies the get_rgba_color function to each spin vector in the input array.
+
+    Parameters:
+        spins (npt.NDArray): An array of spin vectors.
+        opacity (float, optional): The opacity value for all colors. Defaults to 1.0.
+        cardinal_a (npt.NDArray, optional): First cardinal vector. Defaults to np.array([1, 0, 0]).
+        cardinal_b (npt.NDArray, optional): Second cardinal vector. Defaults to np.array([0, 1, 0]).
+        cardinal_c (npt.NDArray, optional): Third cardinal vector. Defaults to np.array([0, 0, 1]).
+
+    Returns:
+        npt.NDArray: An array of RGBA colors corresponding to the input spin vectors.
+    """
     rgba = [
         get_rgba_color(s, opacity, cardinal_a, cardinal_b, cardinal_c) for s in spins
     ]
@@ -72,6 +106,19 @@ def get_rgba_colors(
 
 
 def line_from_3D_curve(curve_func: Callable, interval: npt.NDArray):
+    """
+    Generate a line from a 3D curve function.
+
+    Samples the provided curve function at parameter values specified in 'interval'
+    and constructs a PyVista line connecting these points.
+
+    Parameters:
+        curve_func (Callable): A function that takes a scalar t and returns a 3D point.
+        interval (npt.NDArray): Array of parameter values to sample the curve.
+
+    Returns:
+        pv.PolyData: A PyVista PolyData object representing the line.
+    """
     points = np.array([curve_func(t) for t in interval])
     return pv.lines_from_points(points)
 
@@ -80,27 +127,20 @@ def compute_frenet_frame_single(
     curve_func: Callable, t: float, epsilon: float = 1e-5
 ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
     """
-    Compute the Frenet frame (point, T, N, B) at a single parameter value t.
+    Compute the Frenet frame (T, N, B) at a specific parameter value on a curve.
+
+    The function calculates the tangent (T), normal (N), and binormal (B) vectors
+    using finite-difference approximations of the derivatives.
 
     Parameters:
-      curve_func: callable
-          A function that takes a scalar t and returns a 3D point (as a list or numpy array).
-      t: float
-          The parameter value at which to compute the Frenet frame.
-      epsilon: float
-          A small value used for finite-difference derivative approximations.
+        curve_func (Callable): A function that takes a scalar t and returns a 3D point.
+        t (float): The parameter value at which to compute the Frenet frame.
+        epsilon (float, optional): A small value used for finite-difference approximation. Defaults to 1e-5.
 
     Returns:
-      point: np.ndarray
-          The point on the curve at parameter t.
-      T: np.ndarray
-          The unit tangent vector at t.
-      N: np.ndarray
-          The unit normal vector at t.
-      B: np.ndarray
-          The binormal vector at t.
+        tuple[npt.NDArray, npt.NDArray, npt.NDArray]: A tuple containing the unit tangent (T),
+        normal (N), and binormal (B) vectors.
     """
-
     # Approximate the derivative to get the tangent using central differences
     r_plus = np.array(curve_func(t + epsilon))
     r_minus = np.array(curve_func(t - epsilon))
@@ -122,7 +162,7 @@ def compute_frenet_frame_single(
     # Normalize dT to get the unit normal vector N
     norm_dT = np.linalg.norm(dT)
     if norm_dT < 1e-8:
-        # If curvature is zero, the normal is undefined; here we return an arbitrary vector orthogonal to the tangent
+        # If curvature is zero, the normal is undefined; return an arbitrary vector orthogonal to T.
         ez = np.array([1 / np.sqrt(3), 1 / np.sqrt(3), 1 / np.sqrt(3)])
         N = np.cross(T, ez)
         N /= np.linalg.norm(N)
@@ -144,6 +184,24 @@ def tube_from_3D_curve(
     close_curve: bool = True,
     color_callback: Optional[Callable] = None,
 ) -> pv.PolyData:
+    """
+    Generate a tube mesh from a 3D curve.
+
+    Constructs a tube by sweeping a circular cross-section along the curve defined by 'curve_func'.
+    The orientation of the cross-section is determined by the Frenet frame computed at each sample point.
+
+    Parameters:
+        curve_func (Callable): A function that takes a scalar t and returns a 3D point.
+        interval (npt.NDArray): Array of parameter values to sample the curve.
+        radius (Union[Callable, float], optional): A constant radius or a function returning the radius at a given t. Defaults to 1.0.
+        resolution_phi (int, optional): Number of divisions around the tube's circumference. Defaults to 32.
+        epsilon (float, optional): A small value for finite-difference approximations. Defaults to 1e-5.
+        close_curve (bool, optional): If True, the tube is closed along the curve. Defaults to True.
+        color_callback (Optional[Callable], optional): Function to assign a color to each point. Defaults to None.
+
+    Returns:
+        pv.PolyData: A PyVista PolyData object representing the tube mesh.
+    """
     points_curve = np.array([curve_func(t) for t in interval])
 
     points = []
@@ -195,6 +253,22 @@ def preimage_from_3D_curve(
     n_twists: int,
     epsilon: float = 1e-5,
 ) -> Callable:
+    """
+    Create a preimage function based on a 3D curve.
+
+    This function generates a new curve by offsetting the original curve along its Frenet frame,
+    applying an angular twist determined by 'n_twists' and an initial angle offset 'phi0'.
+
+    Parameters:
+        curve_func (Callable): A function that takes a scalar t and returns a 3D point.
+        phi0 (float): Initial angular offset.
+        radius (Union[Callable, float]): A constant radius or a function returning the radius at a given t.
+        n_twists (int): Number of twists to apply along the curve.
+        epsilon (float, optional): A small value for finite-difference approximations. Defaults to 1e-5.
+
+    Returns:
+        Callable: A function that maps a parameter t to a 3D point on the preimage curve.
+    """
     def preimage(t):
         T, N, B = compute_frenet_frame_single(curve_func, t, epsilon)
         p = curve_func(t)
@@ -218,6 +292,23 @@ def create_preimage_meshes(
     n_twists: int,
     n_res_phi: int,
 ) -> list[pv.PolyData]:
+    """
+    Create tube meshes for preimage curves with different angular offsets.
+
+    For each angle in 'phi_list', a preimage curve is generated and converted into a tube mesh.
+
+    Parameters:
+        curve_func (Callable): A function that takes a scalar t and returns a 3D point.
+        phi_list (list[float]): List of initial angular offsets.
+        radius (Union[Callable, float]): A constant radius or a function returning the radius at a given t.
+        tube_radius (float): The radius of the tube around the preimage curve.
+        n_res_curve (int): Number of sample points along the curve.
+        n_twists (int): Number of twists to apply in generating the preimage curve.
+        n_res_phi (int): Resolution (number of sides) of the tube's cross-section.
+
+    Returns:
+        list[pv.PolyData]: A list of PyVista PolyData objects representing the preimage tube meshes.
+    """
     meshes = []
 
     interval = np.linspace(0, 2 * np.pi, n_res_curve, endpoint=True)
@@ -238,14 +329,42 @@ def create_preimage_meshes(
 
 
 def ring(t, radius=1):
+    """
+    Parametric equation for a ring (circle) in the XY-plane.
+
+    Parameters:
+        t (float): The parameter (angle in radians).
+        radius (float, optional): The radius of the ring. Defaults to 1.
+
+    Returns:
+        list: A list containing the x, y, and z coordinates of the ring point.
+    """
     return [np.cos(t) * radius, np.sin(t) * radius, 0]
 
 
 def figure_eight(t):
+    """
+    Parametric equation for a figure-eight curve in the XY-plane.
+
+    Parameters:
+        t (float): The parameter (typically in radians).
+
+    Returns:
+        list: A list containing the x, y, and z coordinates of the figure-eight curve point.
+    """
     return [np.sin(2.0 * t), np.cos(t), 0]
 
 
 def trefoil(t):
+    """
+    Parametric equation for a trefoil knot.
+
+    Parameters:
+        t (float): The parameter (typically in radians).
+
+    Returns:
+        list: A list containing the x, y, and z coordinates of the trefoil knot point.
+    """
     return [
         np.sin(t) + 2.0 * np.sin(2.0 * t),
         np.sin(3.0 * t),
