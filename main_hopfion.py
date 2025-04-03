@@ -1,6 +1,13 @@
 import numpy as np
 import util
 import link
+from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
+
+log_file = Path(__file__).with_suffix(".log")
+logging.basicConfig(filename=log_file, level=logging.INFO)
 
 # ########################################
 #           SETUP
@@ -71,8 +78,8 @@ def render_hopfion_pre_images(
         t_range=(INTERVAL[0], INTERVAL[-1]),
     )
 
-    print(f"{n_twists = }")
-    print(f"{linking_number = }")
+    logger.info(f"{n_twists = }")
+    logger.info(f"{linking_number = }")
 
     [p.translate(translate_vector, inplace=True) for p in pre_images]
 
@@ -264,20 +271,20 @@ plot_globule(
     translate_vector=[5, 0, 0],
 )
 
-# # Trefoil Hopfion
-# plot_trefoil_hopfion(
-#     plotter, tube_radius=0.5, n_twists=-3, translate_vector=[0, 0, 0], pre_images=True
-# )
+# Trefoil Hopfion
+plot_trefoil_hopfion(
+    plotter, tube_radius=0.5, n_twists=-3, translate_vector=[12, 0, 0], pre_images=True
+)
 
-# # Toroidal Hopfion
-# plot_toroidal_hopfion(
-#     plotter,
-#     ring_radius=2.0,
-#     tube_radius=0.5,
-#     n_twists=6,
-#     translate_vector=[7, 0, 0],
-#     pre_images=True,
-# )
+# Toroidal Hopfion
+plot_toroidal_hopfion(
+    plotter,
+    ring_radius=2.0,
+    tube_radius=0.5,
+    n_twists=6,
+    translate_vector=[12, 0, 0],
+    pre_images=True,
+)
 
 # Toroidal Hopfion on a skyrmion tube
 mesh_args = MESH_ARGS.copy()
@@ -287,12 +294,12 @@ plot_toroidal_hopfion(
     ring_radius=2.0,
     tube_radius=0.5,
     n_twists=1,
-    translate_vector=[10, 0, 0],
+    translate_vector=[19, 0, 0],
     pre_images=True,
     mesh_args=mesh_args,
 )
 plot_skyrmion_tube(
-    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[10, 0, 0]
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[19, 0, 0]
 )
 
 plotter.camera_position = "xz"
@@ -301,3 +308,4 @@ plotter.camera.distance = 0.5
 plotter.camera.view_angle /= 2.2
 
 cpos = plotter.show(screenshot="figure.png", return_cpos=True)
+logger.info(f"{cpos = }")

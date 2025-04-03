@@ -2,13 +2,15 @@ import numpy as np
 import numpy.typing as npt
 import util
 from energy_surfaces.energy_surface import EnergySurface
-from energy_surfaces.surfaces import peaks, lepshogauss, cosine_ssbench
+from energy_surfaces.surfaces import cosine_ssbench
 import pyvista as pv
-import logging
 from ridgefollowing.algorithms import minimizer, neb
+from pathlib import Path
+import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="main_surface.log", level=logging.INFO)
+log_file = Path(__file__).with_suffix(".log")
+logging.basicConfig(filename=log_file, level=logging.INFO)
 
 # ########################################
 #           SETUP
@@ -209,9 +211,11 @@ cpos = [
     (-0.008120532699394296, -0.7947270023077835, 0.6069127192204515),
 ]
 
-cpos = [(-5.01971218986893, 1.9731464297155148, 5.273052913308826),
- (2.0762806876502142, 5.496551693411181, -1.6640199437409793),
- (0.5790219711014105, 0.31470305680146626, 0.7521273449500758)]
+cpos = [
+    (-5.01971218986893, 1.9731464297155148, 5.273052913308826),
+    (2.0762806876502142, 5.496551693411181, -1.6640199437409793),
+    (0.5790219711014105, 0.31470305680146626, 0.7521273449500758),
+]
 
 plotter.camera.position = cpos[0]
 plotter.camera.focal_point = cpos[1]
