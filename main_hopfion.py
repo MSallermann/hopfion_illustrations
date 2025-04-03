@@ -1,4 +1,3 @@
-import pyvista as pv
 import numpy as np
 import util
 import link
@@ -8,20 +7,7 @@ import link
 # ########################################
 
 OFFSCREEN = True
-plotter = pv.Plotter(off_screen=OFFSCREEN, shape=(1, 1))
-plotter.window_size = (2048, 720)
-
-# Create white skybox
-image_paths = 6 * ["./cubemap/very_light_grey.png"]
-cubemap = pv.cubemap_from_filenames(image_paths=image_paths)
-
-# Some plotter settings
-plotter.enable_3_lights()
-plotter.set_environment_texture(cubemap)
-plotter.set_background("white")
-plotter.enable_anti_aliasing()
-plotter.enable_depth_peeling()
-plotter.enable_shadows()
+plotter = util.setup_plotter(offscreen=OFFSCREEN)
 
 
 N_RES_CURVE = 2000

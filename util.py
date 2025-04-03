@@ -410,6 +410,35 @@ def trefoil(t):
     ]
 
 
+def parametrized_path(images, reaction_coordinate):
+    """
+    Construct a parametrized curve from a discrete chain of images and a corresponding reaction coordinate.
+
+    This function returns another function f(s) that uses linear interpolation between the images.
+    The parameter s should be in the interval [reaction_coordinate[0], reaction_coordinate[-1]].
+
+    Parameters:
+        images (list or np.ndarray): A list or array of images, each an np.ndarray of shape (ndim,).
+        reaction_coordinate (np.ndarray): A 1D array of cumulative distances along the path corresponding
+                                          to each image.
+
+    Returns:
+        function: A function f(s) that returns the interpolated configuration at reaction coordinate s.
+    """
+    images = np.array(
+        images
+    )  # ensure we have a NumPy array of shape (num_images, ndim)
+
+    def curve(s):
+        # For each dimension, interpolate using np.interp.
+        ndim = images.shape[1]
+        return np.array(
+            [np.interp(s, reaction_coordinate, images[:, j]) for j in range(ndim)]
+        )
+
+    return curve
+
+
 class SkyBox(enum.Enum):
     black = "black"
     blue = "blue"
