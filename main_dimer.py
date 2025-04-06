@@ -16,7 +16,9 @@ log_file = Path(__file__).with_suffix(".log")
 logging.basicConfig(filename=log_file, level=logging.INFO)
 
 OFFSCREEN = False
-plotter = util.setup_plotter(offscreen=OFFSCREEN, skybox=util.SkyBox.grey, resolution=(1024,720))
+plotter = util.setup_plotter(
+    offscreen=OFFSCREEN, skybox=util.SkyBox.grey, resolution=(1024, 720)
+)
 plotter.disable_shadows()
 
 MESH_ARGS = {
@@ -44,7 +46,7 @@ point2 = normalize(np.array([-0.4, 0, 1]))
 
 # The gradient force on the spins
 force1 = normalize(np.cross([3, 1, 2], point1))
-force2 = 0.8*normalize(np.cross([-2.5, 2, 2], point2))
+force2 = 0.8 * normalize(np.cross([-2.5, 2, 2], point2))
 
 # The tangents at the spins
 tangent_1 = normalize(proj_tangential(point2 - point1, point1))
@@ -120,7 +122,14 @@ TIP_LENGTH = 0.05
 TIP_RADIUS = 0.020 / 1.5
 SHAFT_RADIUS = 0.015 / 2
 
-def arrow_from_force(center, force, tip_length = TIP_LENGTH, tip_radius=TIP_RADIUS, shaft_radius=SHAFT_RADIUS):
+
+def arrow_from_force(
+    center,
+    force,
+    tip_length=TIP_LENGTH,
+    tip_radius=TIP_RADIUS,
+    shaft_radius=SHAFT_RADIUS,
+):
     scale = 0.4 * np.linalg.norm(force)
     arrow_dict = dict(
         scale=scale,
@@ -130,13 +139,18 @@ def arrow_from_force(center, force, tip_length = TIP_LENGTH, tip_radius=TIP_RADI
     )
     return pv.Arrow(center, force, **arrow_dict)
 
+
 ###### Frame of spin 1 ########
 
 # gradient force
 
 plotter.add_mesh(arrow_from_force(point1, force1), color="black", **MESH_ARGS)
 plotter.add_mesh(arrow_from_force(point1, force_2_rotated), color="grey", **MESH_ARGS)
-plotter.add_mesh(arrow_from_force(point1, g_orth_1, shaft_radius=SHAFT_RADIUS * 1.05), color="red", **MESH_ARGS)
+plotter.add_mesh(
+    arrow_from_force(point1, g_orth_1, shaft_radius=SHAFT_RADIUS * 1.05),
+    color="red",
+    **MESH_ARGS,
+)
 plotter.add_mesh(arrow_from_force(point1, g_rot_1), color="green", **MESH_ARGS)
 plotter.add_mesh(arrow_from_force(point1, g_climb_1), color="blue", **MESH_ARGS)
 
@@ -145,7 +159,11 @@ plotter.add_mesh(arrow_from_force(point1, g_climb_1), color="blue", **MESH_ARGS)
 plotter.add_mesh(arrow_from_force(point2, force_1_rotated), color="black", **MESH_ARGS)
 plotter.add_mesh(arrow_from_force(point2, force2), color="grey", **MESH_ARGS)
 
-plotter.add_mesh(arrow_from_force(point2, g_orth_2, shaft_radius=SHAFT_RADIUS * 1.05), color="red", **MESH_ARGS)
+plotter.add_mesh(
+    arrow_from_force(point2, g_orth_2, shaft_radius=SHAFT_RADIUS * 1.05),
+    color="red",
+    **MESH_ARGS,
+)
 plotter.add_mesh(arrow_from_force(point2, g_rot_2), color="green", **MESH_ARGS)
 plotter.add_mesh(arrow_from_force(point2, g_climb_2), color="blue", **MESH_ARGS)
 
