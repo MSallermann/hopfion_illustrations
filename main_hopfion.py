@@ -282,7 +282,7 @@ plot_toroidal_hopfion(
     ring_radius=2.0,
     tube_radius=0.5,
     n_twists=6,
-    translate_vector=[12, 0, 0],
+    translate_vector=[19, 0, 0],
     pre_images=True,
 )
 
@@ -294,12 +294,12 @@ plot_toroidal_hopfion(
     ring_radius=2.0,
     tube_radius=0.5,
     n_twists=1,
-    translate_vector=[19, 0, 0],
+    translate_vector=[26, 0, 0],
     pre_images=True,
     mesh_args=mesh_args,
 )
 plot_skyrmion_tube(
-    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[19, 0, 0]
+    plotter, radius=1.0, height_start=-3, height_end=3, translate_vector=[26, 0, 0]
 )
 
 plotter.camera_position = "xz"
