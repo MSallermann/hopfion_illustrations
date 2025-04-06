@@ -145,38 +145,54 @@ def mark_path(
     tube_radius_path: float = 0.025,
     n_res_path: int = N_RES_PATH,
     mesh_args: dict = MESH_ARGS,
+    mark_intermediate_points: bool = True,
+    mark_first_point: bool = True,
+    mark_last_point: bool = True,
+    mark_saddle_point: bool = True,
+    mark_interpolated_path: bool = True,
 ):
     energy_images = [energy_surface.energy(i) for i in images]
     idx_sp = np.argmax(energy_images)
     sp = images[idx_sp]
 
-    [
+    if mark_intermediate_points:
+        [
+            mark_point(
+                plotter,
+                img,
+                color=color_images,
+                radius=radius_point_spheres,
+                mesh_args=mesh_args,
+            )
+            for img in images[1:-1]
+        ]
+
+    if mark_saddle_point:
         mark_point(
             plotter,
-            img,
-            color=color_images,
+            sp,
+            color=color_sp,
             radius=radius_point_spheres,
             mesh_args=mesh_args,
         )
-        for img in images[1:-1]
-    ]
-    mark_point(
-        plotter, sp, color=color_sp, radius=radius_point_spheres, mesh_args=mesh_args
-    )
-    mark_point(
-        plotter,
-        images[0],
-        color_endpoints,
-        radius=radius_point_spheres,
-        mesh_args=mesh_args,
-    )
-    mark_point(
-        plotter,
-        images[-1],
-        color_endpoints,
-        radius=radius_point_spheres,
-        mesh_args=mesh_args,
-    )
+
+    if mark_first_point:
+        mark_point(
+            plotter,
+            images[0],
+            color_endpoints,
+            radius=radius_point_spheres,
+            mesh_args=mesh_args,
+        )
+
+    if mark_last_point:
+        mark_point(
+            plotter,
+            images[-1],
+            color_endpoints,
+            radius=radius_point_spheres,
+            mesh_args=mesh_args,
+        )
 
     grad_sp = energy_surface.gradient(sp)
     logger.info(f"{grad_sp=}")
@@ -195,23 +211,27 @@ def mark_path(
     logger.info(images)
     logger.info(rx)
 
-    path_as_tube = util.line_from_3D_curve(
-        curve_func, interval=np.linspace(rx[0], rx[-1], n_res_path)
-    )
-    path_as_tube["energy"] = path_as_tube.points[:, 2]
-    path_as_tube.tube(radius=tube_radius_path, inplace=True)
+    if mark_interpolated_path:
+        path_as_tube = util.line_from_3D_curve(
+            curve_func, interval=np.linspace(rx[0], rx[-1], n_res_path)
+        )
+        path_as_tube["energy"] = path_as_tube.points[:, 2]
+        path_as_tube.tube(radius=tube_radius_path, inplace=True)
 
-    mesh_args = mesh_args.copy()
-    mesh_args["rgb"] = False
-    mesh_args["color"] = color_tube
-    mesh_args["scalars"] = None
-    mesh_args["pbr"] = False
+        mesh_args = mesh_args.copy()
+        mesh_args["rgb"] = False
+        mesh_args["color"] = color_tube
+        mesh_args["scalars"] = None
+        mesh_args["pbr"] = False
 
-    plotter.add_mesh(path_as_tube, **mesh_args)
-    return curve_func
+        plotter.add_mesh(path_as_tube, **mesh_args)
+
+    return curve_func, idx_sp
 
 
-path_curve_func = mark_path(plotter, rx, images, energy_surface=energy_surface)
+path_curve_func, idx_sp = mark_path(
+    plotter, rx, images, energy_surface=energy_surface, mark_intermediate_points=False, mark_interpolated_path=False
+)
 
 
 # ########################################
@@ -233,7 +253,7 @@ cpos = [
 plotter.camera.position = cpos[0]
 plotter.camera.focal_point = cpos[1]
 plotter.camera.view_up = cpos[2]
-plotter.camera.view_angle /= 1.3
+plotter.camera.view_angle /= 1.5
 
 cpos = plotter.show(return_cpos=True, screenshot="gneb.png")
 logger.info(f"{cpos = }")
