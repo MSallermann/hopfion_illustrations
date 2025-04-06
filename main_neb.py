@@ -79,19 +79,26 @@ logger.info(f"{x_end = }")
 #        Find the MEP
 # ########################################
 
-neb_run = neb.GNEB(
-    energy_surface=energy_surface,
-    x_start=x_start,
-    x_end=x_end,
-    num_images=24,
-    step_size=1e-2,
-    convergence_tol=1e-4,
-    max_iter=10000,
-)
+path_images = Path("./images.npy")
+path_rx = Path("./rx.npy")
 
-neb_run.run()
+if path_images.exists() and path_rx.exists():
+    images, rx = np.load(path_images), np.load(path_rx)
+else:
+    neb_run = neb.GNEB(
+        energy_surface=energy_surface,
+        x_start=x_start,
+        x_end=x_end,
+        num_images=24,
+        step_size=1e-2,
+        convergence_tol=1e-4,
+        max_iter=10000,
+    )
+    neb_run.run()
+    images, rx = neb_run.get_path()
+    np.save(path_images, images)
+    np.save(path_rx, rx)
 
-images, rx = neb_run.get_path()
 
 # ########################################
 #          Plot the surface
@@ -136,7 +143,7 @@ def mark_path(
     color_sp: str = "red",
     radius_point_spheres: float = 0.05,
     tube_radius_path: float = 0.025,
-    n_res_path: int = 500,
+    n_res_path: int = N_RES_PATH,
     mesh_args: dict = MESH_ARGS,
 ):
     energy_images = [energy_surface.energy(i) for i in images]
@@ -201,9 +208,15 @@ def mark_path(
     mesh_args["pbr"] = False
 
     plotter.add_mesh(path_as_tube, **mesh_args)
+    return curve_func
 
 
-mark_path(plotter, rx, images, energy_surface=energy_surface)
+path_curve_func = mark_path(plotter, rx, images, energy_surface=energy_surface)
+
+
+# ########################################
+#          Finalize
+# ########################################
 
 cpos = [
     (1.461096353582104, 9.954686329132304, 5.461085853395577),
