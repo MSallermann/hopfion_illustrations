@@ -21,6 +21,8 @@ plotter = util.setup_plotter(
     offscreen=OFFSCREEN, skybox=util.SkyBox.light_grey, resolution=[1524, 720]
 )
 
+N_RES_X = 200
+N_RES_Y = 200
 N_RES_PATH = 100
 
 
@@ -229,7 +231,7 @@ def mark_path(
 
 
 path_curve_func, idx_sp = mark_path(
-    plotter, rx, images, energy_surface=energy_surface, mark_intermediate_points=False, mark_interpolated_path=False
+    plotter, rx, images, energy_surface=energy_surface
 )
 
 
