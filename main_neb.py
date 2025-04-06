@@ -21,8 +21,7 @@ plotter = util.setup_plotter(
     offscreen=OFFSCREEN, skybox=util.SkyBox.light_grey, resolution=[1524, 720]
 )
 
-N_RES_X = 200
-N_RES_Y = 200
+N_RES_PATH = 100
 
 
 MESH_ARGS = {
