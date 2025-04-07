@@ -228,7 +228,7 @@ plotter.add_mesh(par_min2, smooth_shading=True, color="darkgreen")
 par_sp1, par_sp2 = eigenvector_parabolas_around_point(
     point_xy=images[idx_sp],
     energy_surface=energy_surface,
-    interval=np.linspace(-1, 1, 100),
+    interval=np.linspace(-2, 2, 100),
     tube_radius=0.020,
 )
 plotter.add_mesh(par_sp1, smooth_shading=True, color="darkred")
@@ -255,6 +255,16 @@ def mark_perpendicular_velocities(plotter, point_xy, arrow_scale=-0.5, num_arrow
         plotter.add_mesh(arr, color="black")
 
 
+    for t in np.linspace(0, 1, endpoint=True, num=num_arrows):
+        start = par(t, dir=evecs[:, 1])
+        direction = np.array([*evecs[:, 0], 0])
+        arr = pv.Arrow(
+            start=start, direction=-direction, scale=arrow_scale * np.linalg.norm(t)
+        )
+        plotter.add_mesh(arr, color="grey")
+
+
+
 mark_perpendicular_velocities(plotter, images[idx_sp])
 
 # ########################################
@@ -272,6 +282,10 @@ cpos = [
     (2.0762806876502142, 5.496551693411181, -1.6640199437409793),
     (0.5790219711014105, 0.31470305680146626, 0.7521273449500758),
 ]
+
+cpos = [(-6.795255912885496, 6.796391426728302, 7.829840057644683),
+ (1.8901578235788778, 4.878720430142301, -1.2938037898610553),
+ (0.7208802828885713, -0.029406101652449654, 0.6924354835853659)]
 
 plotter.camera.position = cpos[0]
 plotter.camera.focal_point = cpos[1]
