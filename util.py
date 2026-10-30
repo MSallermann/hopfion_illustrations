@@ -455,7 +455,8 @@ def setup_plotter(
     offscreen: bool = False,
     resolution: tuple[float] = (2048, 720),
     skybox: SkyBox = SkyBox.very_light_grey,
-):
+    background: str = "white",
+) -> pv.Plotter:
     plotter = pv.Plotter(off_screen=offscreen, shape=(1, 1), window_size=resolution)
 
     # Create skybox
@@ -465,7 +466,6 @@ def setup_plotter(
     # Some plotter settings for "nice" looking renders
     plotter.enable_3_lights()
     plotter.set_environment_texture(cubemap)
-    plotter.set_background("white")
     plotter.enable_anti_aliasing()
     plotter.enable_depth_peeling()
     plotter.enable_shadows()

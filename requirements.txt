@@ -1,4 +1,4 @@
 numpy
 scipy
-pyvista == 0.44.1
+pyvista
 ridgefollowing@git+https://github.com/MSallermann/cos2_ridge_following.git@v0.1.0
